@@ -109,14 +109,20 @@ function drawVertList(p)
             lg.setColor{1, 0.8, 1}
             lg.line(x1, y1, x2, y2)
             lg.setColor{0.1, 0.9, 0.1}
-            lg.circle("line", x2, y2, 3)
+            --lg.circle("line", x2, y2, 3)
         end
         lg.setColor{0.1, 0.9, 0.1}
-        lg.circle("line", x1, y1, 3)
+        --lg.circle("line", x1, y1, 3)
     until not node
 end
 
+local w, h = lg.getDimensions()
+local cam = { x = 0, y = 0, scale = 1.0 }
+
 function love.draw()
+    lg.push("transform")
+    lg.translate(cam.x, cam.y)
+    lg.scale(cam.scale, cam.scale)
     lg.setColor{1, 1, 1}
     for i = 1, #verts - 1 do
         local p1, p2 = verts[i], verts[i + 1]
@@ -128,14 +134,25 @@ function love.draw()
         lg.print(string.format("%d", k), v.x, v.y)
     end
     drawVertList(vertsList[1])
+    lg.pop()
 end
 
 function love.update(dt)
 end
 
+function love.wheelmoved(_, y)
+    print(y)
+    if y > 0 then
+        cam.scale = cam.scale * 0.8
+    else
+        cam.scale = cam.scale / 0.8
+    end
+end
+
 function love.mousemoved(x, y, dx, dy)
-    if love.mouse.isDown(3) then
-        love.event.quit()
+    if love.mouse.isDown(1) then
+        cam.x = cam.x + dx
+        cam.y = cam.y + dy
     end
 end
 
@@ -146,11 +163,13 @@ function love.keypressed(_, key)
     if key == "escape" then
         love.event.quit()
     elseif key == "l" then
-        fractal2(vertsList[1], vertsList[2], 4)
+        fractal2(vertsList[1], vertsList[2], 8)
     elseif key == "e" then
         fractal(verts, 1, 2)
         fractal(verts, 1, 2)
     elseif key == "d" then
         verts = copy(defaultVerts)
+    elseif key == "q" then
+        cam.x = 0; cam.y = 0; cam.scale = 1
     end
 end
