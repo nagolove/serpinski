@@ -44,9 +44,10 @@ local verts = copy(defaultVerts)
 -- i < j
 function fractal(vertices, i, j)
     local a, b = vertices[i], vertices[j]
-    local norm = (b - a):perpendicular():normalizeInplace() * 20
+    local norm = (a - b):perpendicular():normalizeInplace() * 30
     print("norm", inspect(norm))
-    local middle = ((b - a) / 2) 
+    local middle = a + ((b - a) / 2) + norm
+    --local middle = a + norm
     print("middle", inspect(middle))
     table.insert(vertices, i + 1, middle)
 end
