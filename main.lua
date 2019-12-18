@@ -38,15 +38,22 @@ end
 local defaultVerts = {vector(100, 100), vector(400, 100)}
 local verts = copy(defaultVerts)
 
--- рекурсивная функция создания фрактала.
--- n - количество итераций, при n == 0(или при n == 1?) рекурсия прекращается.
--- vertices - таблица с вершиннами, куда добавляются новые
--- i < j
-function fractal(vertices, i, j)
+function makeVertsList(p1, p2)
+    local res = copy({p1, p2})
+    p1.prev = nil
+    p1.next = p2
+    p2.prev = p1
+    p2.next = nil
+    return res
+end
+
+local vertsList = makeVertsList(vector(100, 450), vector(400, 450))
+
+function fractal2(p1, p2)
     local a, b = vertices[i], vertices[j]
-    local norm = (a - b):perpendicular():normalizeInplace() * 80
-    print("norm", inspect(norm))
     local delta = (a - b):len() / 3
+    local norm = (a - b):perpendicular():normalizeInplace() * delta
+    print("norm", inspect(norm))
     local as = a + (b - a):normalizeInplace() * delta
     local bs = b - (b - a):normalizeInplace() * delta
     local middle = a + ((b - a) / 2) + norm
@@ -56,6 +63,43 @@ function fractal(vertices, i, j)
     table.insert(vertices, i + 1, bs)
     table.insert(vertices, i + 1, middle)
     table.insert(vertices, i + 1, as)
+end
+
+-- рекурсивная функция создания фрактала.
+-- n - количество итераций, при n == 0(или при n == 1?) рекурсия прекращается.
+-- vertices - таблица с вершиннами, куда добавляются новые
+-- i < j
+function fractal(vertices, i, j)
+    local a, b = vertices[i], vertices[j]
+    local delta = (a - b):len() / 3
+    local norm = (a - b):perpendicular():normalizeInplace() * delta
+    print("norm", inspect(norm))
+    local as = a + (b - a):normalizeInplace() * delta
+    local bs = b - (b - a):normalizeInplace() * delta
+    local middle = a + ((b - a) / 2) + norm
+    --local middle = a + norm
+    print("middle", inspect(middle))
+    print("as", inspect(as))
+    table.insert(vertices, i + 1, bs)
+    table.insert(vertices, i + 1, middle)
+    table.insert(vertices, i + 1, as)
+end
+
+function drawVertList(p)
+    local node = p
+    repeat
+        local x1, y1 = node.x, node.y
+        node = node.next
+        if node then
+            local x2, y2 = node.x, node.y
+            lg.setColor{1, 0.8, 1}
+            lg.line(x1, y1, x2, y2)
+            lg.setColor{0.1, 0.9, 0.1}
+            lg.circle("line", x2, y2, 3)
+        end
+        lg.setColor{0.1, 0.9, 0.1}
+        lg.circle("line", x1, y1, 3)
+    until node
 end
 
 function love.draw()
@@ -69,6 +113,7 @@ function love.draw()
         lg.circle("line", v.x, v.y, 3)
         lg.print(string.format("%d", k), v.x, v.y)
     end
+    drawVertList(vertsList[1])
 end
 
 function love.update(dt)
@@ -77,6 +122,9 @@ end
 function love.mousepressed(x, y, btn)
     if btn == 1 then
         fractal(verts, 1, 2)
+        fractal(verts, 1, 2)
+        --fractal(verts, 2, 3)
+        --fractal(verts, 3, 4)
     elseif btn == 2 then
         verts = copy(defaultVerts)
     end
