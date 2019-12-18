@@ -1,3 +1,4 @@
+local lb = require "kons".new()
 local inspect = require "inspect"
 local vector = require "vector"
 local lg = love.graphics
@@ -99,7 +100,10 @@ function fractal(vertices, i, j)
     table.insert(vertices, i + 1, as)
 end
 
+local listVerticesCount = 0
+
 function drawVertList(p)
+    listVerticesCount = 0
     local node = p
     repeat
         local x1, y1 = node.x, node.y
@@ -113,6 +117,7 @@ function drawVertList(p)
         end
         lg.setColor{0.1, 0.9, 0.1}
         --lg.circle("line", x1, y1, 3)
+        listVerticesCount = listVerticesCount + 1
     until not node
 end
 
@@ -135,9 +140,12 @@ function love.draw()
     end
     drawVertList(vertsList[1])
     lg.pop()
+    lb:pushi("listVerticesCount = %d", listVerticesCount)
+    lb:draw()
 end
 
 function love.update(dt)
+    lb:update()
 end
 
 function love.wheelmoved(_, y)
