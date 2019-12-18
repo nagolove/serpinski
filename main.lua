@@ -49,20 +49,34 @@ end
 
 local vertsList = makeVertsList(vector(100, 450), vector(400, 450))
 
-function fractal2(p1, p2)
-    local a, b = vertices[i], vertices[j]
-    local delta = (a - b):len() / 3
-    local norm = (a - b):perpendicular():normalizeInplace() * delta
-    print("norm", inspect(norm))
-    local as = a + (b - a):normalizeInplace() * delta
-    local bs = b - (b - a):normalizeInplace() * delta
-    local middle = a + ((b - a) / 2) + norm
-    --local middle = a + norm
-    print("middle", inspect(middle))
-    print("as", inspect(as))
-    table.insert(vertices, i + 1, bs)
-    table.insert(vertices, i + 1, middle)
-    table.insert(vertices, i + 1, as)
+function fractal2(p1, p2, n)
+    --assert(p1.next == p2)
+    --assert(p2.prev == p1)
+    local height = (p1 - p2):len() / 3
+    local part = (p2 - p1):normalizeInplace() * height
+    local a = p1 + part
+    local b = p2 - part
+    local middle = p1 + ((p2 - p1) / 2) + (p1 - p2):perpendicular():
+        normalizeInplace() * height
+
+    --p1.next = middle
+    --middle.next = p2
+    p1.next = a
+    a.next = middle
+    middle.next = b
+    b.next = p2
+
+    p2.prev = b
+    b.prev = middle
+    middle.prev = a
+    a.prev = p1
+
+    if n >= 1 then
+        fractal2(p1, p1.next, n - 1)
+        fractal2(p2.prev, p2, n - 1)
+        fractal2(middle.prev, middle, n - 1)
+        fractal2(middle, middle.next, n - 1)
+    end
 end
 
 -- рекурсивная функция создания фрактала.
@@ -99,7 +113,7 @@ function drawVertList(p)
         end
         lg.setColor{0.1, 0.9, 0.1}
         lg.circle("line", x1, y1, 3)
-    until node
+    until not node
 end
 
 function love.draw()
@@ -119,19 +133,24 @@ end
 function love.update(dt)
 end
 
-function love.mousepressed(x, y, btn)
-    if btn == 1 then
-        fractal(verts, 1, 2)
-        fractal(verts, 1, 2)
-        --fractal(verts, 2, 3)
-        --fractal(verts, 3, 4)
-    elseif btn == 2 then
-        verts = copy(defaultVerts)
+function love.mousemoved(x, y, dx, dy)
+    if love.mouse.isDown(3) then
+        love.event.quit()
     end
+end
+
+function love.mousepressed(x, y, btn)
 end
 
 function love.keypressed(_, key)
     if key == "escape" then
         love.event.quit()
+    elseif key == "l" then
+        fractal2(vertsList[1], vertsList[2], 4)
+    elseif key == "e" then
+        fractal(verts, 1, 2)
+        fractal(verts, 1, 2)
+    elseif key == "d" then
+        verts = copy(defaultVerts)
     end
 end
